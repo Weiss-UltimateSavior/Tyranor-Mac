@@ -24,7 +24,7 @@ struct SidebarView: View {
                 .frame(maxWidth: .infinity, alignment: isCollapsed ? .center : .leading)
             }
         }
-        .frame(width: isCollapsed ? 60 : 236)
+        .frame(width: isCollapsed ? 80 : 236)
         .background(Theme.sidebar)
         .sheet(isPresented: $showGameScan) {
             GameScanView()

@@ -1,6 +1,12 @@
 import Combine
 import Foundation
 
+struct CoverFetchResult {
+    let path: String
+    let source: CoverSource
+    let metadata: CoverMetadata?
+}
+
 @MainActor
 final class CoverScraper: ObservableObject {
     @Published private(set) var isRunning = false
@@ -16,7 +22,11 @@ final class CoverScraper: ObservableObject {
         cancelRequested = true
     }
 
-    func scrape(games: [Game], settings: CoverSettings, apply: @escaping (UUID, String, CoverSource) -> Void) {
+    func scrape(
+        games: [Game],
+        settings: CoverSettings,
+        apply: @escaping (UUID, String, CoverSource, CoverMetadata?) -> Void
+    ) {
         guard !isRunning else { return }
         startRun()
 
@@ -28,10 +38,10 @@ final class CoverScraper: ObservableObject {
                 currentTitle = game.title
 
                 if let cover = await Self.resolveCover(for: game, settings: settings) {
-                    if cover.path == game.coverPath, cover.source == game.coverSource {
+                    if cover.path == game.coverPath, cover.source == game.coverSource, cover.metadata == nil {
                         skippedCount += 1
                     } else {
-                        apply(game.id, cover.path, cover.source)
+                        apply(game.id, cover.path, cover.source, cover.metadata)
                         updatedCount += 1
                     }
                 } else if game.coverPath != nil {
@@ -44,19 +54,19 @@ final class CoverScraper: ObservableObject {
         }
     }
 
-    func fetchSingle(_ game: Game, settings: CoverSettings, apply: @escaping (UUID, String, CoverSource) -> Void) {
+    func fetchSingle(
+        _ game: Game,
+        settings: CoverSettings,
+        apply: @escaping (UUID, String, CoverSource, CoverMetadata?) -> Void
+    ) {
         guard !isRunning else { return }
         startRun()
         currentTitle = game.title
 
         Task {
-            if let cover = await Self.resolveCover(for: game, settings: settings) {
-                if cover.path == game.coverPath, cover.source == game.coverSource {
-                    skippedCount = 1
-                } else {
-                    apply(game.id, cover.path, cover.source)
-                    updatedCount = 1
-                }
+            if let cover = await Self.resolveCover(for: game, settings: settings, force: true) {
+                apply(game.id, cover.path, cover.source, cover.metadata)
+                updatedCount = 1
             } else {
                 failedCount = 1
             }
@@ -64,12 +74,16 @@ final class CoverScraper: ObservableObject {
         }
     }
 
-    static func resolveCover(for game: Game, settings: CoverSettings) async -> (path: String, source: CoverSource)? {
+    static func resolveCover(
+        for game: Game,
+        settings: CoverSettings,
+        force: Bool = false
+    ) async -> CoverFetchResult? {
         let directory = URL(fileURLWithPath: game.metadata.directoryPath)
         let localPath = CoverSupport.localCoverPath(in: directory)
-        let local = localPath.map { ($0, CoverSource.local) }
+        let local = localPath.map { CoverFetchResult(path: $0, source: .local, metadata: nil) }
 
-        if settings.onlyMissing {
+        if !force, settings.onlyMissing {
             if let local { return local }
             if let existing = game.coverPath, FileManager.default.fileExists(atPath: existing) {
                 return nil
@@ -88,7 +102,7 @@ final class CoverScraper: ObservableObject {
                     prefix: "\(source.rawValue)_\(key)",
                     source: source
                 ) {
-                    return (path, source)
+                    return CoverFetchResult(path: path, source: source, metadata: candidate.metadata)
                 }
             }
         }

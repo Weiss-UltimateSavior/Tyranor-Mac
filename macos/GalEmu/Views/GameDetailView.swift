@@ -6,14 +6,13 @@ struct GameDetailView: View {
     @EnvironmentObject private var library: GameLibraryController
     @EnvironmentObject private var emulator: EmulatorController
     @EnvironmentObject private var appearance: AppearanceSettings
-    @EnvironmentObject private var coverScraper: CoverScraper
-    @EnvironmentObject private var coverSettings: CoverSettings
 
     @State private var showDetailSheet = false
     @State private var showSaveManager = false
     @State private var showMoreOptions = false
     @State private var showDeleteConfirm = false
     @State private var showPatchBrowser = false
+    @State private var showCoverPicker = false
     @State private var showRename = false
     @State private var renameText = ""
 
@@ -39,6 +38,11 @@ struct GameDetailView: View {
         .sheet(isPresented: $showPatchBrowser) {
             if let game = library.selectedGame {
                 PatchBrowserView(game: game)
+            }
+        }
+        .sheet(isPresented: $showCoverPicker) {
+            if let game = library.selectedGame {
+                CoverPickerView(game: game)
             }
         }
         .alert("重命名游戏", isPresented: $showRename) {
@@ -143,9 +147,7 @@ struct GameDetailView: View {
             VStack(alignment: .leading, spacing: 2) {
                 MoreOptionRow(title: "获取封面", icon: "photo.on.rectangle.angled") {
                     showMoreOptions = false
-                    coverScraper.fetchSingle(game, settings: coverSettings) { id, path, source in
-                        library.setCover(for: id, path: path, source: source)
-                    }
+                    showCoverPicker = true
                 }
                 MoreOptionRow(title: "选择本地图片…", icon: "photo") {
                     showMoreOptions = false
@@ -223,13 +225,26 @@ private struct GameDetailSheet: View {
                     .frame(width: 190, height: 253)
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 10) {
                     Text(game.title)
                         .font(.system(size: 22, weight: .bold))
                         .foregroundStyle(Theme.textPrimary)
+                    if let originalTitle = game.metadata.originalTitle,
+                       !originalTitle.isEmpty,
+                       originalTitle != game.title {
+                        Text(originalTitle)
+                            .font(.system(size: 12))
+                            .foregroundStyle(Theme.textTertiary)
+                            .lineLimit(1)
+                    }
                     Text(metadataLine)
                         .font(.system(size: 12.5))
                         .foregroundStyle(Theme.textSecondary)
+                    if let source = game.coverSource {
+                        Text("封面来源：\(source.displayName)")
+                            .font(.system(size: 11))
+                            .foregroundStyle(Theme.textTertiary)
+                    }
 
                     if !game.metadata.tags.isEmpty {
                         HStack(spacing: 6) {
@@ -249,6 +264,7 @@ private struct GameDetailSheet: View {
                             .font(.system(size: 13))
                             .foregroundStyle(Theme.textSecondary)
                             .lineSpacing(4)
+                            .lineLimit(6)
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
@@ -272,7 +288,7 @@ private struct GameDetailSheet: View {
             }
         }
         .padding(24)
-        .frame(width: 620, height: 320, alignment: .topLeading)
+        .frame(width: 640, height: 360, alignment: .topLeading)
         .background(Theme.background)
     }
 
@@ -280,6 +296,11 @@ private struct GameDetailSheet: View {
         var parts: [String] = []
         if !game.metadata.developer.isEmpty, game.metadata.developer != "未知" {
             parts.append(game.metadata.developer)
+        }
+        if let releaseDate = game.metadata.releaseDate, !releaseDate.isEmpty {
+            parts.append(releaseDate)
+        } else if game.metadata.releaseYear > 0 {
+            parts.append("\(game.metadata.releaseYear)")
         }
         parts.append(game.engine.rawValue)
         return parts.joined(separator: " · ")
@@ -294,13 +315,19 @@ private struct MoreOptionRow: View {
 
     var body: some View {
         Button(action: action) {
-            Label(title, systemImage: icon)
-                .font(.system(size: 13))
-                .foregroundStyle(isDestructive ? Theme.favorite : Theme.textPrimary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 13))
+                    .frame(width: 16, height: 16)
+                Text(title)
+                    .font(.system(size: 13))
+                Spacer(minLength: 0)
+            }
+            .foregroundStyle(isDestructive ? Theme.favorite : Theme.textPrimary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

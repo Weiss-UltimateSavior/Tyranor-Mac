@@ -70,10 +70,36 @@ final class GameLibraryController: ObservableObject {
         games[index].lastPlayed = Date()
     }
 
-    func setCover(for gameID: UUID, path: String, source: CoverSource) {
+    func setCover(
+        for gameID: UUID,
+        path: String,
+        source: CoverSource,
+        metadata: CoverMetadata? = nil
+    ) {
         guard let index = games.firstIndex(where: { $0.id == gameID }) else { return }
         games[index].coverPath = path
         games[index].coverSource = source
+
+        if let metadata {
+            if let originalTitle = metadata.originalTitle, !originalTitle.isEmpty {
+                games[index].metadata.originalTitle = originalTitle
+            }
+            if let developer = metadata.developer, !developer.isEmpty {
+                games[index].metadata.developer = developer
+            }
+            if let releaseDate = metadata.releaseDate, !releaseDate.isEmpty {
+                games[index].metadata.releaseDate = releaseDate
+                if let year = Int(releaseDate.prefix(4)) {
+                    games[index].metadata.releaseYear = year
+                }
+            }
+            if let summary = metadata.summary, !summary.isEmpty {
+                games[index].metadata.summary = summary
+            }
+            if !metadata.tags.isEmpty {
+                games[index].metadata.tags = Array(metadata.tags.prefix(8))
+            }
+        }
     }
 
     func remove(_ game: Game) {

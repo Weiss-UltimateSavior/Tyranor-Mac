@@ -106,8 +106,8 @@ struct CoverSettingsView: View {
             }
             : library.games
 
-        scraper.scrape(games: games, settings: coverSettings) { id, path, source in
-            library.setCover(for: id, path: path, source: source)
+        scraper.scrape(games: games, settings: coverSettings) { id, path, source, metadata in
+            library.setCover(for: id, path: path, source: source, metadata: metadata)
         }
     }
 }

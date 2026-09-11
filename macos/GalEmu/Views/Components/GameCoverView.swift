@@ -11,6 +11,7 @@ struct GameCoverView: View {
                 if let image = CoverImageCache.loadImage(path: coverPath) {
                     Image(nsImage: image)
                         .resizable()
+                        .interpolation(.high)
                         .scaledToFill()
                 } else {
                     placeholder

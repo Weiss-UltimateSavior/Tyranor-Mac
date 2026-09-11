@@ -66,6 +66,15 @@ struct AppearanceSettingsView: View {
                         }
                     }
                 }
+
+                Section("首页") {
+                    Picker("首页样式", selection: $appearance.homeStyle) {
+                        ForEach(HomeStyle.allCases) { style in
+                            Text(style.rawValue).tag(style)
+                        }
+                    }
+                    Toggle("背景高斯模糊", isOn: $appearance.homeBlurEnabled)
+                }
             }
             .formStyle(.grouped)
         }

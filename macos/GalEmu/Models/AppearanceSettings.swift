@@ -95,6 +95,13 @@ enum CoverCorner: String, CaseIterable, Identifiable {
     }
 }
 
+enum HomeStyle: String, CaseIterable, Identifiable {
+    case hero = "大图"
+    case carousel = "封面流"
+
+    var id: String { rawValue }
+}
+
 final class AppearanceSettings: ObservableObject {
     @Published var themeMode: ThemeMode = .system {
         didSet {
@@ -115,6 +122,14 @@ final class AppearanceSettings: ObservableObject {
         didSet { defaults.set(coverCorner.rawValue, forKey: Keys.coverCorner) }
     }
 
+    @Published var homeBlurEnabled: Bool = true {
+        didSet { defaults.set(homeBlurEnabled, forKey: Keys.homeBlur) }
+    }
+
+    @Published var homeStyle: HomeStyle = .hero {
+        didSet { defaults.set(homeStyle.rawValue, forKey: Keys.homeStyle) }
+    }
+
     private let defaults = UserDefaults.standard
 
     init() {
@@ -123,6 +138,8 @@ final class AppearanceSettings: ObservableObject {
         accent = AccentPalette(rawValue: defaults.string(forKey: Keys.accent) ?? "") ?? .blue
         coverSize = CoverSize(rawValue: defaults.string(forKey: Keys.coverSize) ?? "") ?? .standard
         coverCorner = CoverCorner(rawValue: defaults.string(forKey: Keys.coverCorner) ?? "") ?? .medium
+        homeBlurEnabled = defaults.object(forKey: Keys.homeBlur) as? Bool ?? true
+        homeStyle = HomeStyle(rawValue: defaults.string(forKey: Keys.homeStyle) ?? "") ?? .hero
         DispatchQueue.main.async { [weak self] in
             self?.applyThemeMode()
         }
@@ -137,5 +154,7 @@ final class AppearanceSettings: ObservableObject {
         static let accent = "appearance.accent"
         static let coverSize = "appearance.coverSize"
         static let coverCorner = "appearance.coverCorner"
+        static let homeBlur = "appearance.homeBlur"
+        static let homeStyle = "appearance.homeStyle"
     }
 }

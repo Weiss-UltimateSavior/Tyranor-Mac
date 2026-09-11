@@ -7,7 +7,12 @@ struct HomeView: View {
     var body: some View {
         Group {
             if let game = library.selectedGame {
-                content(for: game)
+                switch appearance.homeStyle {
+                case .hero:
+                    content(for: game)
+                case .carousel:
+                    HomeCarouselView()
+                }
             } else {
                 emptyState
             }
@@ -29,7 +34,7 @@ struct HomeView: View {
         ZStack(alignment: .bottomLeading) {
             GameCoverView(title: game.title, engine: game.engine, coverPath: game.coverPath)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .blur(radius: 55, opaque: true)
+                .blur(radius: appearance.homeBlurEnabled ? 55 : 0, opaque: true)
                 .allowsHitTesting(false)
 
             LinearGradient(

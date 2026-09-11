@@ -6,4 +6,6 @@ struct GameMetadata: Hashable, Codable {
     var summary: String
     var tags: [String]
     var directoryPath: String
+    var originalTitle: String?
+    var releaseDate: String?
 }
