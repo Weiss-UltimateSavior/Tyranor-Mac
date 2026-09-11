@@ -11,7 +11,7 @@
 | --- | --- | --- |
 | KIRIKIRI | [krkrsdl3](https://github.com/krkrsdl3/krkrsdl3) | 已接入 |
 | ONS | [OnscripterYuri](https://github.com/YuriSizuku/OnscripterYuri) | 已接入 |
-| ARTEMIS | art3m1s-core | 规划中 |
+| ARTEMIS | 规划中 |
 
 ## 功能
 
