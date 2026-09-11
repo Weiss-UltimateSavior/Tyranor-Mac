@@ -69,6 +69,7 @@ final class ONSEngineSettings: ObservableObject {
     private let defaults = UserDefaults.standard
 
     init() {
+        SettingsMigration.runOnce()
         encoding = ONSTextEncoding(rawValue: defaults.string(forKey: Keys.encoding) ?? "") ?? .automatic
         windowSize = ONSWindowSize(rawValue: defaults.string(forKey: Keys.windowSize) ?? "") ?? .automatic
         fullscreen = defaults.object(forKey: Keys.fullscreen) as? Bool ?? false

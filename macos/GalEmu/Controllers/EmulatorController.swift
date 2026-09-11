@@ -35,8 +35,11 @@ final class EmulatorController: ObservableObject {
                 notice = Notice(game: game, message: "未找到 OnscripterYuri 内核，请在设置 → 内核中配置路径")
                 return
             }
+            let saveDirectory = gameDirectory.appendingPathComponent("save", isDirectory: true)
+            try? FileManager.default.createDirectory(at: saveDirectory, withIntermediateDirectories: true)
             executable = url
-            arguments = ["-r", gameDirectory.path] + ONSEngineSettings.persistedLaunchArguments()
+            arguments = ["-r", gameDirectory.path, "--save-dir", saveDirectory.path + "/"]
+                + ONSEngineSettings.persistedLaunchArguments()
         case .artemis:
             notice = Notice(game: game, message: "暂未接入 \(game.engine.rawValue) 内核，当前支持 KIRIKIRI 与 ONS")
             return

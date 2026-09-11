@@ -2,25 +2,29 @@ import SwiftUI
 
 struct SidebarView: View {
     @EnvironmentObject private var library: GameLibraryController
+    @AppStorage("sidebar.collapsed") private var isCollapsed = false
     @State private var showSortOptions = false
     @State private var showGameScan = false
     @State private var showCoverSettings = false
     @State private var showAppearance = false
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 18) {
-                librarySection
-                engineSettingsSection
-                appSettingsSection
-                sortSection
+        VStack(alignment: .leading, spacing: 0) {
+            collapseHeader
+
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 18) {
+                    librarySection
+                    engineSettingsSection
+                    appSettingsSection
+                    sortSection
+                }
+                .padding(.horizontal, isCollapsed ? 6 : 12)
+                .padding(.bottom, 16)
+                .frame(maxWidth: .infinity, alignment: isCollapsed ? .center : .leading)
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 34)
-            .padding(.bottom, 16)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(width: 236)
+        .frame(width: isCollapsed ? 60 : 236)
         .background(Theme.sidebar)
         .sheet(isPresented: $showGameScan) {
             GameScanView()
@@ -33,19 +37,44 @@ struct SidebarView: View {
         }
     }
 
+    private var collapseHeader: some View {
+        HStack(spacing: 0) {
+            Spacer(minLength: 0)
+            Button {
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    isCollapsed.toggle()
+                }
+            } label: {
+                Image(systemName: "sidebar.left")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Theme.textSecondary)
+                    .frame(width: 24, height: 24)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help(isCollapsed ? "展开侧边栏" : "收起侧边栏")
+            if isCollapsed {
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(.horizontal, isCollapsed ? 0 : 10)
+        .padding(.top, 30)
+        .padding(.bottom, 8)
+    }
+
     private var librarySection: some View {
         VStack(alignment: .leading, spacing: 2) {
             sectionTitle("游戏库")
-            SidebarRow(icon: "house", title: "首页", isSelected: library.selection == .home) {
+            SidebarRow(icon: "house", title: "首页", isSelected: library.selection == .home, isCompact: isCollapsed) {
                 library.selection = .home
             }
-            SidebarRow(icon: "square.grid.2x2", title: "全部游戏", count: library.count(for: .all), isSelected: library.selection == .library(.all)) {
+            SidebarRow(icon: "square.grid.2x2", title: "全部游戏", count: library.count(for: .all), isSelected: library.selection == .library(.all), isCompact: isCollapsed) {
                 library.selection = .library(.all)
             }
-            SidebarRow(icon: "star", title: "收藏", count: library.count(for: .favorites), isSelected: library.selection == .library(.favorites)) {
+            SidebarRow(icon: "star", title: "收藏", count: library.count(for: .favorites), isSelected: library.selection == .library(.favorites), isCompact: isCollapsed) {
                 library.selection = .library(.favorites)
             }
-            SidebarRow(icon: "clock", title: "最近游玩", count: library.count(for: .recent), isSelected: library.selection == .library(.recent)) {
+            SidebarRow(icon: "clock", title: "最近游玩", count: library.count(for: .recent), isSelected: library.selection == .library(.recent), isCompact: isCollapsed) {
                 library.selection = .library(.recent)
             }
         }
@@ -58,7 +87,8 @@ struct SidebarView: View {
                 SidebarRow(
                     icon: "gearshape",
                     title: engine.rawValue,
-                    isSelected: library.selection == .engine(engine)
+                    isSelected: library.selection == .engine(engine),
+                    isCompact: isCollapsed
                 ) {
                     library.selection = .engine(engine)
                 }
@@ -69,13 +99,13 @@ struct SidebarView: View {
     private var appSettingsSection: some View {
         VStack(alignment: .leading, spacing: 2) {
             sectionTitle("应用设置")
-            SidebarRow(icon: "magnifyingglass", title: "游戏扫描", isSelected: false) {
+            SidebarRow(icon: "magnifyingglass", title: "游戏扫描", isSelected: false, isCompact: isCollapsed) {
                 showGameScan = true
             }
-            SidebarRow(icon: "photo.on.rectangle", title: "封面获取", isSelected: false) {
+            SidebarRow(icon: "photo.on.rectangle", title: "封面获取", isSelected: false, isCompact: isCollapsed) {
                 showCoverSettings = true
             }
-            SidebarRow(icon: "paintpalette", title: "外观设置", isSelected: false) {
+            SidebarRow(icon: "paintpalette", title: "外观设置", isSelected: false, isCompact: isCollapsed) {
                 showAppearance = true
             }
         }
@@ -96,17 +126,21 @@ struct SidebarView: View {
                 Image(systemName: "arrow.up.arrow.down")
                     .font(.system(size: 13))
                     .frame(width: 18)
-                Text("排序: \(library.sort.rawValue)")
-                    .font(.system(size: 13))
-                    .lineLimit(1)
-                Spacer(minLength: 0)
+                if !isCollapsed {
+                    Text("排序: \(library.sort.rawValue)")
+                        .font(.system(size: 13))
+                        .lineLimit(1)
+                    Spacer(minLength: 0)
+                }
             }
             .foregroundStyle(Theme.textSecondary)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, isCollapsed ? 6 : 10)
             .padding(.vertical, 7)
+            .frame(maxWidth: isCollapsed ? .infinity : nil, alignment: .center)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .help("排序：\(library.sort.rawValue)")
         .popover(isPresented: $showSortOptions, arrowEdge: .trailing) {
             VStack(alignment: .leading, spacing: 2) {
                 ForEach(LibrarySort.allCases) { option in
@@ -121,12 +155,21 @@ struct SidebarView: View {
         }
     }
 
+    @ViewBuilder
     private func sectionTitle(_ title: String) -> some View {
-        Text(title)
-            .font(.system(size: 11, weight: .medium))
-            .foregroundStyle(Theme.textTertiary)
-            .padding(.horizontal, 10)
-            .padding(.bottom, 4)
+        if isCollapsed {
+            Rectangle()
+                .fill(Theme.separator)
+                .frame(height: 1)
+                .padding(.horizontal, 6)
+                .padding(.bottom, 2)
+        } else {
+            Text(title)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(Theme.textTertiary)
+                .padding(.horizontal, 10)
+                .padding(.bottom, 4)
+        }
     }
 }
 
@@ -135,6 +178,7 @@ private struct SidebarRow: View {
     let title: String
     var count: Int? = nil
     let isSelected: Bool
+    var isCompact: Bool = false
     let action: () -> Void
 
     @EnvironmentObject private var appearance: AppearanceSettings
@@ -146,24 +190,28 @@ private struct SidebarRow: View {
                 Image(systemName: icon)
                     .font(.system(size: 13))
                     .frame(width: 18)
-                Text(title)
-                    .font(.system(size: 13))
-                    .lineLimit(1)
-                Spacer(minLength: 8)
-                if let count {
-                    Text("\(count)")
-                        .font(.system(size: 12))
-                        .foregroundStyle(isSelected ? Color.white.opacity(0.85) : Theme.textTertiary)
+                if !isCompact {
+                    Text(title)
+                        .font(.system(size: 13))
+                        .lineLimit(1)
+                    Spacer(minLength: 8)
+                    if let count {
+                        Text("\(count)")
+                            .font(.system(size: 12))
+                            .foregroundStyle(isSelected ? Color.white.opacity(0.85) : Theme.textTertiary)
+                    }
                 }
             }
             .foregroundStyle(isSelected ? Color.white : Theme.textSecondary)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, isCompact ? 6 : 10)
             .padding(.vertical, 7)
+            .frame(maxWidth: isCompact ? .infinity : nil, alignment: .center)
             .background(rowBackground, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .onHover { isHovering = $0 }
+        .help(title)
     }
 
     private var rowBackground: Color {

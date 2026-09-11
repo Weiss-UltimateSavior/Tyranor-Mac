@@ -57,6 +57,7 @@ final class KREngineSettings: ObservableObject {
     private let defaults = UserDefaults.standard
 
     init() {
+        SettingsMigration.runOnce()
         renderer = RendererOption(rawValue: defaults.string(forKey: Keys.renderer) ?? "") ?? .automatic
         windowSize = WindowSizeOption(rawValue: defaults.string(forKey: Keys.windowSize) ?? "") ?? .automatic
     }

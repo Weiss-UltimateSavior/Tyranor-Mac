@@ -182,7 +182,7 @@ enum EngineDetector {
             metadata: GameMetadata(
                 developer: "未知",
                 releaseYear: Calendar.current.component(.year, from: Date()),
-                summary: "扫描发现的本地游戏目录。",
+                summary: "",
                 tags: [],
                 directoryPath: directory.path
             ),

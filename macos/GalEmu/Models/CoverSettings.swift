@@ -21,6 +21,7 @@ final class CoverSettings: ObservableObject {
     private let defaults = UserDefaults.standard
 
     init() {
+        SettingsMigration.runOnce()
         onlyMissing = defaults.object(forKey: Keys.onlyMissing) as? Bool ?? true
         useVNDB = defaults.object(forKey: Keys.useVNDB) as? Bool ?? true
         useBangumi = defaults.object(forKey: Keys.useBangumi) as? Bool ?? true

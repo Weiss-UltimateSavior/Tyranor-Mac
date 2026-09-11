@@ -112,7 +112,12 @@ struct HomeView: View {
     }
 
     private func metadataLine(for game: Game) -> String {
-        "\(game.metadata.developer) · \(game.metadata.releaseYear) · \(game.engine.rawValue)"
+        var parts: [String] = []
+        if !game.metadata.developer.isEmpty, game.metadata.developer != "未知" {
+            parts.append(game.metadata.developer)
+        }
+        parts.append(game.engine.rawValue)
+        return parts.joined(separator: " · ")
     }
 }
 

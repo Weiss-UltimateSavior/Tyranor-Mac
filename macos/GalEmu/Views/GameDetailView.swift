@@ -12,6 +12,10 @@ struct GameDetailView: View {
     @State private var showDetailSheet = false
     @State private var showSaveManager = false
     @State private var showMoreOptions = false
+    @State private var showDeleteConfirm = false
+    @State private var showPatchBrowser = false
+    @State private var showRename = false
+    @State private var renameText = ""
 
     var body: some View {
         VStack(spacing: 0) {
@@ -28,7 +32,39 @@ struct GameDetailView: View {
             }
         }
         .sheet(isPresented: $showSaveManager) {
-            SaveManagerView()
+            if let game = library.selectedGame {
+                SaveManagerView(game: game)
+            }
+        }
+        .sheet(isPresented: $showPatchBrowser) {
+            if let game = library.selectedGame {
+                PatchBrowserView(game: game)
+            }
+        }
+        .alert("重命名游戏", isPresented: $showRename) {
+            TextField("游戏名称", text: $renameText)
+            Button("保存") {
+                if let game = library.selectedGame {
+                    library.rename(game, to: renameText)
+                }
+            }
+            Button("取消", role: .cancel) {}
+        } message: {
+            Text("只修改应用内显示的名称，不会改动游戏文件。")
+        }
+        .confirmationDialog(
+            "确定从游戏库中删除「\(library.selectedGame?.title ?? "")」吗？",
+            isPresented: $showDeleteConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("删除", role: .destructive) {
+                if let game = library.selectedGame {
+                    library.remove(game)
+                }
+            }
+            Button("取消", role: .cancel) {}
+        } message: {
+            Text("只删除应用中的数据，不会删除真实游戏文件。")
         }
     }
 
@@ -56,7 +92,7 @@ struct GameDetailView: View {
                         .foregroundStyle(Theme.textSecondary)
                         .lineLimit(1)
                 }
-                Text(game.metadata.summary)
+                Text(game.metadata.summary.isEmpty ? game.metadata.directoryPath : game.metadata.summary)
                     .font(.system(size: 12.5))
                     .foregroundStyle(Theme.textSecondary)
                     .lineSpacing(3)
@@ -115,6 +151,17 @@ struct GameDetailView: View {
                     showMoreOptions = false
                     chooseCover(for: game)
                 }
+                MoreOptionRow(title: "重命名", icon: "pencil") {
+                    showMoreOptions = false
+                    renameText = game.title
+                    showRename = true
+                }
+                if game.engine == .kirikiri {
+                    MoreOptionRow(title: "在线补丁", icon: "arrow.down.circle") {
+                        showMoreOptions = false
+                        showPatchBrowser = true
+                    }
+                }
                 MoreOptionRow(title: "存档管理", icon: "externaldrive") {
                     showMoreOptions = false
                     showSaveManager = true
@@ -126,6 +173,13 @@ struct GameDetailView: View {
                 MoreOptionRow(title: "在访达中显示", icon: "magnifyingglass") {
                     showMoreOptions = false
                     NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: game.metadata.directoryPath)])
+                }
+                Divider()
+                    .overlay(Theme.separator)
+                    .padding(.vertical, 4)
+                MoreOptionRow(title: "删除游戏", icon: "trash", isDestructive: true) {
+                    showMoreOptions = false
+                    showDeleteConfirm = true
                 }
             }
             .padding(6)
@@ -148,11 +202,11 @@ struct GameDetailView: View {
     }
 
     private func metadataLine(for game: Game) -> String {
-        let parts: [String] = [
-            game.metadata.developer,
-            "\(game.metadata.releaseYear)",
-            game.engine.rawValue,
-        ]
+        var parts: [String] = []
+        if !game.metadata.developer.isEmpty, game.metadata.developer != "未知" {
+            parts.append(game.metadata.developer)
+        }
+        parts.append(game.engine.rawValue)
         return parts.joined(separator: " · ")
     }
 }
@@ -190,11 +244,13 @@ private struct GameDetailSheet: View {
                         }
                     }
 
-                    Text(game.metadata.summary)
-                        .font(.system(size: 13))
-                        .foregroundStyle(Theme.textSecondary)
-                        .lineSpacing(4)
-                        .fixedSize(horizontal: false, vertical: true)
+                    if !game.metadata.summary.isEmpty {
+                        Text(game.metadata.summary)
+                            .font(.system(size: 13))
+                            .foregroundStyle(Theme.textSecondary)
+                            .lineSpacing(4)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
 
                     Text(game.metadata.directoryPath)
                         .font(.system(size: 11))
@@ -221,11 +277,11 @@ private struct GameDetailSheet: View {
     }
 
     private var metadataLine: String {
-        let parts: [String] = [
-            game.metadata.developer,
-            "\(game.metadata.releaseYear)",
-            game.engine.rawValue,
-        ]
+        var parts: [String] = []
+        if !game.metadata.developer.isEmpty, game.metadata.developer != "未知" {
+            parts.append(game.metadata.developer)
+        }
+        parts.append(game.engine.rawValue)
         return parts.joined(separator: " · ")
     }
 }
@@ -233,13 +289,14 @@ private struct GameDetailSheet: View {
 private struct MoreOptionRow: View {
     let title: String
     let icon: String
+    var isDestructive: Bool = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Label(title, systemImage: icon)
                 .font(.system(size: 13))
-                .foregroundStyle(Theme.textPrimary)
+                .foregroundStyle(isDestructive ? Theme.favorite : Theme.textPrimary)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 6)
                 .frame(maxWidth: .infinity, alignment: .leading)

@@ -118,6 +118,7 @@ final class AppearanceSettings: ObservableObject {
     private let defaults = UserDefaults.standard
 
     init() {
+        SettingsMigration.runOnce()
         themeMode = ThemeMode(rawValue: defaults.string(forKey: Keys.themeMode) ?? "") ?? .system
         accent = AccentPalette(rawValue: defaults.string(forKey: Keys.accent) ?? "") ?? .blue
         coverSize = CoverSize(rawValue: defaults.string(forKey: Keys.coverSize) ?? "") ?? .standard

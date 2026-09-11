@@ -11,31 +11,62 @@ struct GameLibraryView: View {
     }
 
     var body: some View {
-        Group {
-            if library.visibleGames.isEmpty {
-                emptyState
-            } else {
-                ScrollView {
-                    LazyVGrid(columns: columns, alignment: .leading, spacing: 24) {
-                        ForEach(library.visibleGames) { game in
-                            GameCard(
-                                game: game,
-                                isSelected: game.id == library.selectedGameID,
-                                onSelect: { library.select(game) },
-                            onLaunch: {
-                                library.select(game)
-                                library.markPlayed(game)
-                                emulator.launch(game)
+        VStack(spacing: 0) {
+            if library.filter == .all {
+                searchBar
+            }
+            Group {
+                if library.visibleGames.isEmpty {
+                    emptyState
+                } else {
+                    ScrollView {
+                        LazyVGrid(columns: columns, alignment: .leading, spacing: 24) {
+                            ForEach(library.visibleGames) { game in
+                                GameCard(
+                                    game: game,
+                                    isSelected: game.id == library.selectedGameID,
+                                    onSelect: { library.select(game) },
+                                    onLaunch: {
+                                        library.select(game)
+                                        library.markPlayed(game)
+                                        emulator.launch(game)
+                                    }
+                                )
                             }
-                            )
                         }
+                        .padding(26)
                     }
-                    .padding(26)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.background)
+    }
+
+    private var searchBar: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.textTertiary)
+            TextField("搜索游戏", text: $library.searchText)
+                .textFieldStyle(.plain)
+                .font(.system(size: 13))
+            if !library.searchText.isEmpty {
+                Button {
+                    library.searchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.textTertiary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background(Theme.panel, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .padding(.horizontal, 26)
+        .padding(.top, 14)
     }
 
     private var emptyState: some View {

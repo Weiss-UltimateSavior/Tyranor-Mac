@@ -3,6 +3,7 @@ import SwiftUI
 
 struct GameScanView: View {
     @EnvironmentObject private var library: GameLibraryController
+    @EnvironmentObject private var scanSettings: ScanSettings
     @Environment(\.dismiss) private var dismiss
 
     @State private var directory: URL?
@@ -47,6 +48,7 @@ struct GameScanView: View {
     private var content: some View {
         VStack(alignment: .leading, spacing: 14) {
             directoryRow
+            depthRow
 
             if results.isEmpty && !isScanning && !recentRoots.isEmpty {
                 VStack(alignment: .leading, spacing: 3) {
@@ -101,6 +103,25 @@ struct GameScanView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
+    private var depthRow: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "square.3.layers.3d")
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.textSecondary)
+            Text("扫描层次")
+                .font(.system(size: 12.5))
+                .foregroundStyle(Theme.textPrimary)
+            Spacer(minLength: 8)
+            Picker("", selection: $scanSettings.maxDepth) {
+                ForEach(1...8, id: \.self) { depth in
+                    Text("\(depth) 层").tag(depth)
+                }
+            }
+            .labelsHidden()
+            .frame(width: 90)
+        }
+    }
+
     private var directoryRow: some View {
         HStack(spacing: 10) {
             Image(systemName: "folder")
@@ -153,6 +174,7 @@ struct GameScanView: View {
 
     private func startScan() {
         guard let directory else { return }
+        let depth = scanSettings.maxDepth
         isScanning = true
         hasScanned = false
         results = []
@@ -163,7 +185,7 @@ struct GameScanView: View {
                 progress = Double(step) / 20
             }
             let found = await Task.detached(priority: .userInitiated) {
-                EngineDetector.scanGames(in: directory)
+                EngineDetector.scanGames(in: directory, maxDepth: depth)
             }.value
             results = found
             hasScanned = true

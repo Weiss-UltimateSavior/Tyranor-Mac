@@ -23,6 +23,19 @@ enum GameStore {
                 save(games)
             }
         }
+
+        if !UserDefaults.standard.bool(forKey: Keys.summaryCleanupDone) {
+            let placeholder = "扫描发现的本地游戏目录。"
+            var changed = false
+            for index in games.indices where games[index].metadata.summary == placeholder {
+                games[index].metadata.summary = ""
+                changed = true
+            }
+            UserDefaults.standard.set(true, forKey: Keys.summaryCleanupDone)
+            if changed {
+                save(games)
+            }
+        }
         return games
     }
 
@@ -37,5 +50,6 @@ enum GameStore {
 
     private enum Keys {
         static let missingCleanupDone = "library.missingCleanupDone"
+        static let summaryCleanupDone = "library.summaryCleanupDone"
     }
 }

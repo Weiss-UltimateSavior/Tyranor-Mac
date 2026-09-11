@@ -49,6 +49,7 @@ final class EmulatorSettings: ObservableObject {
     private let defaults = UserDefaults.standard
 
     init() {
+        SettingsMigration.runOnce()
         masterVolume = defaults.object(forKey: Keys.masterVolume) as? Double ?? 0.8
         bgmVolume = defaults.object(forKey: Keys.bgmVolume) as? Double ?? 0.8
         seVolume = defaults.object(forKey: Keys.seVolume) as? Double ?? 0.9

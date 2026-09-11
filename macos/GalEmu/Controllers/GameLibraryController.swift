@@ -6,7 +6,14 @@ final class GameLibraryController: ObservableObject {
         didSet { GameStore.save(games) }
     }
 
-    @Published var selection: SidebarSelection = .home
+    @Published var selection: SidebarSelection = .home {
+        didSet {
+            if case .library(.all) = selection { return }
+            searchText = ""
+        }
+    }
+
+    @Published var searchText = ""
 
     @Published var sort: LibrarySort {
         didSet { UserDefaults.standard.set(sort.rawValue, forKey: Keys.sort) }
@@ -22,6 +29,7 @@ final class GameLibraryController: ObservableObject {
     }
 
     init() {
+        SettingsMigration.runOnce()
         let loaded = GameStore.load() ?? []
         games = loaded
         sort = LibrarySort(rawValue: UserDefaults.standard.string(forKey: Keys.sort) ?? "") ?? .recentlyPlayed
@@ -34,9 +42,14 @@ final class GameLibraryController: ObservableObject {
     }
 
     var visibleGames: [Game] {
-        games
-            .filter { matches($0, filter: filter) }
-            .sorted(by: orderedBefore)
+        var result = games.filter { matches($0, filter: filter) }
+        if filter == .all, !searchText.isEmpty {
+            result = result.filter {
+                $0.title.localizedCaseInsensitiveContains(searchText)
+                    || $0.metadata.developer.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+        return result.sorted(by: orderedBefore)
     }
 
     func count(for filter: LibraryFilter) -> Int {
@@ -61,6 +74,20 @@ final class GameLibraryController: ObservableObject {
         guard let index = games.firstIndex(where: { $0.id == gameID }) else { return }
         games[index].coverPath = path
         games[index].coverSource = source
+    }
+
+    func remove(_ game: Game) {
+        guard let index = games.firstIndex(where: { $0.id == game.id }) else { return }
+        games.remove(at: index)
+        if selectedGameID == game.id {
+            selectedGameID = games.first?.id
+        }
+    }
+
+    func rename(_ game: Game, to title: String) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, let index = games.firstIndex(where: { $0.id == game.id }) else { return }
+        games[index].title = trimmed
     }
 
     func add(_ newGames: [Game]) {
