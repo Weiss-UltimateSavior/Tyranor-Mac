@@ -11,39 +11,46 @@ struct GameLibraryView: View {
     }
 
     var body: some View {
-        ScrollView {
+        Group {
             if library.visibleGames.isEmpty {
                 emptyState
             } else {
-                LazyVGrid(columns: columns, alignment: .leading, spacing: 24) {
-                    ForEach(library.visibleGames) { game in
-                        GameCard(
-                            game: game,
-                            isSelected: game.id == library.selectedGameID,
-                            onSelect: { library.select(game) },
+                ScrollView {
+                    LazyVGrid(columns: columns, alignment: .leading, spacing: 24) {
+                        ForEach(library.visibleGames) { game in
+                            GameCard(
+                                game: game,
+                                isSelected: game.id == library.selectedGameID,
+                                onSelect: { library.select(game) },
                             onLaunch: {
                                 library.select(game)
+                                library.markPlayed(game)
                                 emulator.launch(game)
                             }
-                        )
+                            )
+                        }
                     }
+                    .padding(26)
                 }
-                .padding(26)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.background)
     }
 
     private var emptyState: some View {
         VStack(spacing: 10) {
-            Image(systemName: "tray")
+            Image(systemName: library.games.isEmpty ? "square.grid.2x2" : "tray")
                 .font(.system(size: 30))
-            Text("没有符合条件的游戏")
+            Text(library.games.isEmpty ? "游戏库为空" : "没有符合条件的游戏")
                 .font(.system(size: 13))
+            if library.games.isEmpty {
+                Text("点击左侧「游戏扫描」添加游戏")
+                    .font(.system(size: 12))
+            }
         }
         .foregroundStyle(Theme.textTertiary)
-        .frame(maxWidth: .infinity)
-        .padding(.top, 120)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -55,6 +62,7 @@ private struct GameCard: View {
 
     @EnvironmentObject private var appearance: AppearanceSettings
     @State private var isHovering = false
+    @State private var lastTapTime = Date.distantPast
 
     private var coverRadius: CGFloat {
         appearance.coverCorner.radius
@@ -62,7 +70,7 @@ private struct GameCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            GameCoverView(title: game.title, engine: game.engine)
+            GameCoverView(title: game.title, engine: game.engine, coverPath: game.coverPath)
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .clipShape(RoundedRectangle(cornerRadius: coverRadius, style: .continuous))
                 .overlay(alignment: .topTrailing) { favoriteBadge }
@@ -92,8 +100,16 @@ private struct GameCard: View {
         .animation(.easeOut(duration: 0.15), value: isSelected)
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
-        .onTapGesture(count: 2) { onLaunch() }
-        .onTapGesture { onSelect() }
+        .onTapGesture {
+            let now = Date()
+            if now.timeIntervalSince(lastTapTime) < 0.35 {
+                lastTapTime = .distantPast
+                onLaunch()
+            } else {
+                lastTapTime = now
+                onSelect()
+            }
+        }
     }
 
     @ViewBuilder private var favoriteBadge: some View {

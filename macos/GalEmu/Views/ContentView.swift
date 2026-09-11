@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var emulator = EmulatorController()
+    @EnvironmentObject private var library: GameLibraryController
     @EnvironmentObject private var appearance: AppearanceSettings
 
     var body: some View {
@@ -11,8 +12,15 @@ struct ContentView: View {
                 Divider()
                     .overlay(Theme.separator)
                 VStack(spacing: 0) {
-                    GameLibraryView()
-                    GameDetailView()
+                    switch library.selection {
+                    case .home:
+                        HomeView()
+                    case let .engine(engine):
+                        EngineSettingsView(engine: engine)
+                    case .library:
+                        GameLibraryView()
+                        GameDetailView()
+                    }
                 }
             }
             .background(Theme.background)

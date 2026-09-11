@@ -17,25 +17,38 @@ final class EmulatorController: ObservableObject {
         guard !isProcessRunning else { return }
         notice = nil
 
-        guard game.engine == .kirikiri else {
-            notice = Notice(
-                game: game,
-                message: "暂未接入 \(game.engine.rawValue) 内核，当前仅支持 KIRIKIRI（krkrsdl3）"
-            )
-            return
-        }
-
-        guard let executable = CoreLocator.krkrsdl3Executable() else {
-            notice = Notice(game: game, message: "未找到 krkrsdl3 内核，请在设置 → 内核中配置路径")
-            return
-        }
-
         let gameDirectory = URL(fileURLWithPath: game.metadata.directoryPath)
+        let executable: URL
+        let arguments: [String]
+
+        switch game.engine {
+        case .kirikiri:
+            guard let url = CoreLocator.krkrsdl3Executable() else {
+                notice = Notice(game: game, message: "未找到 krkrsdl3 内核，请在设置 → 内核中配置路径")
+                return
+            }
+            executable = url
+            arguments = [EngineDetector.kirikiriLaunchEntry(in: gameDirectory).path]
+                + KREngineSettings.persistedLaunchArguments()
+        case .ons:
+            guard let url = CoreLocator.onsyuriExecutable() else {
+                notice = Notice(game: game, message: "未找到 OnscripterYuri 内核，请在设置 → 内核中配置路径")
+                return
+            }
+            executable = url
+            arguments = ["-r", gameDirectory.path] + ONSEngineSettings.persistedLaunchArguments()
+        case .artemis:
+            notice = Notice(game: game, message: "暂未接入 \(game.engine.rawValue) 内核，当前支持 KIRIKIRI 与 ONS")
+            return
+        }
+
         let process = Process()
         process.executableURL = executable
-        process.arguments = [EngineDetector.kirikiriLaunchEntry(in: gameDirectory).path]
+        process.currentDirectoryURL = gameDirectory
+        process.arguments = arguments
         var environment = ProcessInfo.processInfo.environment
         environment["KRKR_WINDOW_TITLE"] = game.title
+        environment["ONS_WINDOW_TITLE"] = game.title
         process.environment = environment
         process.terminationHandler = { [weak self] _ in
             DispatchQueue.main.async {

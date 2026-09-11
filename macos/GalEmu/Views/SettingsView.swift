@@ -43,19 +43,36 @@ struct SettingsView: View {
     private var kernelSettings: some View {
         Form {
             Section("KIRIKIRI（krkrsdl3）") {
-                LabeledContent("内核路径") {
-                    HStack(spacing: 8) {
-                        TextField("", text: $settings.krkrsdl3Path, prompt: Text(CoreLocator.defaultKrkrsdl3Path))
-                            .textFieldStyle(.roundedBorder)
-                        Button("选择…") { chooseKrkrsdl3() }
-                    }
-                }
-                Text("留空时使用默认构建路径：\(CoreLocator.defaultKrkrsdl3Path)")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+                kernelRow(
+                    title: "内核路径",
+                    text: $settings.krkrsdl3Path,
+                    defaultPath: CoreLocator.defaultKrkrsdl3Path
+                )
+            }
+            Section("ONS（OnscripterYuri）") {
+                kernelRow(
+                    title: "内核路径",
+                    text: $settings.onsyuriPath,
+                    defaultPath: CoreLocator.defaultOnsyuriPath
+                )
             }
         }
         .formStyle(.grouped)
+    }
+
+    private func kernelRow(title: String, text: Binding<String>, defaultPath: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            LabeledContent(title) {
+                HStack(spacing: 8) {
+                    TextField("", text: text, prompt: Text(defaultPath))
+                        .textFieldStyle(.roundedBorder)
+                    Button("选择…") { chooseExecutable { text.wrappedValue = $0 } }
+                }
+            }
+            Text("留空时使用默认构建路径：\(defaultPath)")
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+        }
     }
 
     private func volumeRow(_ title: String, value: Binding<Double>) -> some View {
@@ -70,15 +87,15 @@ struct SettingsView: View {
         }
     }
 
-    private func chooseKrkrsdl3() {
+    private func chooseExecutable(completion: (String) -> Void) {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
         panel.allowsMultipleSelection = false
         panel.prompt = "选择"
-        panel.message = "选择 krkrsdl3 可执行文件"
+        panel.message = "选择可执行文件"
         if panel.runModal() == .OK, let url = panel.url {
-            settings.krkrsdl3Path = url.path
+            completion(url.path)
         }
     }
 }

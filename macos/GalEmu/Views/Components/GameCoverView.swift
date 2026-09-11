@@ -3,8 +3,25 @@ import SwiftUI
 struct GameCoverView: View {
     let title: String
     let engine: EngineKind
+    var coverPath: String? = nil
 
     var body: some View {
+        GeometryReader { proxy in
+            Group {
+                if let image = CoverImageCache.loadImage(path: coverPath) {
+                    Image(nsImage: image)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    placeholder
+                }
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height)
+            .clipped()
+        }
+    }
+
+    private var placeholder: some View {
         ZStack {
             LinearGradient(colors: palette, startPoint: .topLeading, endPoint: .bottomTrailing)
 

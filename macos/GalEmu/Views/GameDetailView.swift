@@ -1,10 +1,13 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct GameDetailView: View {
     @EnvironmentObject private var library: GameLibraryController
     @EnvironmentObject private var emulator: EmulatorController
     @EnvironmentObject private var appearance: AppearanceSettings
+    @EnvironmentObject private var coverScraper: CoverScraper
+    @EnvironmentObject private var coverSettings: CoverSettings
 
     @State private var showDetailSheet = false
     @State private var showSaveManager = false
@@ -12,11 +15,12 @@ struct GameDetailView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Divider()
-                .overlay(Theme.separator)
+            Rectangle()
+                .fill(Theme.separator)
+                .frame(height: 1)
             content
         }
-        .frame(height: 156)
+        .frame(height: 156, alignment: .top)
         .background(Theme.panel)
         .sheet(isPresented: $showDetailSheet) {
             if let game = library.selectedGame {
@@ -64,6 +68,7 @@ struct GameDetailView: View {
 
             HStack(spacing: 10) {
                 Button {
+                    library.markPlayed(game)
                     emulator.launch(game)
                 } label: {
                     Label("启动", systemImage: "play.fill")
@@ -100,6 +105,16 @@ struct GameDetailView: View {
         .buttonStyle(SecondaryActionButtonStyle())
         .popover(isPresented: $showMoreOptions, arrowEdge: .top) {
             VStack(alignment: .leading, spacing: 2) {
+                MoreOptionRow(title: "获取封面", icon: "photo.on.rectangle.angled") {
+                    showMoreOptions = false
+                    coverScraper.fetchSingle(game, settings: coverSettings) { id, path, source in
+                        library.setCover(for: id, path: path, source: source)
+                    }
+                }
+                MoreOptionRow(title: "选择本地图片…", icon: "photo") {
+                    showMoreOptions = false
+                    chooseCover(for: game)
+                }
                 MoreOptionRow(title: "存档管理", icon: "externaldrive") {
                     showMoreOptions = false
                     showSaveManager = true
@@ -118,16 +133,26 @@ struct GameDetailView: View {
         }
     }
 
+    private func chooseCover(for game: Game) {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.image]
+        panel.prompt = "选择"
+        panel.message = "选择封面图片"
+        if panel.runModal() == .OK, let url = panel.url,
+           let path = CoverImageCache.saveCustomCover(from: url, gameID: game.id) {
+            library.setCover(for: game.id, path: path, source: .custom)
+        }
+    }
+
     private func metadataLine(for game: Game) -> String {
-        var parts: [String] = [
+        let parts: [String] = [
             game.metadata.developer,
             "\(game.metadata.releaseYear)",
             game.engine.rawValue,
         ]
-        if game.playtimeHours > 0 {
-            parts.append("\(Int(game.playtimeHours)) 小时")
-        }
-        parts.append(game.status.rawValue)
         return parts.joined(separator: " · ")
     }
 }
@@ -140,7 +165,7 @@ private struct GameDetailSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top, spacing: 22) {
-                GameCoverView(title: game.title, engine: game.engine)
+                GameCoverView(title: game.title, engine: game.engine, coverPath: game.coverPath)
                     .frame(width: 190, height: 253)
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
@@ -196,15 +221,11 @@ private struct GameDetailSheet: View {
     }
 
     private var metadataLine: String {
-        var parts: [String] = [
+        let parts: [String] = [
             game.metadata.developer,
             "\(game.metadata.releaseYear)",
             game.engine.rawValue,
         ]
-        if game.playtimeHours > 0 {
-            parts.append("\(Int(game.playtimeHours)) 小时")
-        }
-        parts.append(game.status.rawValue)
         return parts.joined(separator: " · ")
     }
 }

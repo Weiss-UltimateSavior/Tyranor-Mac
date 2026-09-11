@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "GalEmu",
+    name: "TyranorMac",
     platforms: [.macOS(.v13)],
     targets: [
         .target(
@@ -12,9 +12,10 @@ let package = Package(
             linkerSettings: [.linkedLibrary("z")]
         ),
         .executableTarget(
-            name: "GalEmu",
+            name: "TyranorMac",
             dependencies: ["CXP3"],
-            path: "GalEmu"
+            path: "GalEmu",
+            resources: [.process("Resources")]
         )
     ]
 )

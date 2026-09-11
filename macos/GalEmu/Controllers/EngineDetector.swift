@@ -176,7 +176,8 @@ enum EngineDetector {
     }
 
     private static func game(for directory: URL, detection: Detection) -> Game {
-        Game(
+        let coverPath = CoverSupport.localCoverPath(in: directory)
+        return Game(
             title: directory.lastPathComponent,
             metadata: GameMetadata(
                 developer: "未知",
@@ -186,7 +187,9 @@ enum EngineDetector {
                 directoryPath: directory.path
             ),
             engine: detection.engine,
-            status: .notStarted
+            coverPath: coverPath,
+            coverSource: coverPath == nil ? nil : .local,
+            lastPlayed: nil
         )
     }
 

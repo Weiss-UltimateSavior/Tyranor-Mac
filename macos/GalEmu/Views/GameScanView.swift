@@ -10,6 +10,7 @@ struct GameScanView: View {
     @State private var hasScanned = false
     @State private var progress: Double = 0
     @State private var results: [Game] = []
+    @State private var recentRoots: [URL] = []
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,6 +24,12 @@ struct GameScanView: View {
         }
         .frame(width: 580, height: 460)
         .background(Theme.background)
+        .onAppear {
+            recentRoots = ScanRootStore.load()
+            if directory == nil {
+                directory = recentRoots.first
+            }
+        }
     }
 
     private var header: some View {
@@ -40,6 +47,20 @@ struct GameScanView: View {
     private var content: some View {
         VStack(alignment: .leading, spacing: 14) {
             directoryRow
+
+            if results.isEmpty && !isScanning && !recentRoots.isEmpty {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("最近目录")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Theme.textTertiary)
+                        .padding(.horizontal, 10)
+                    ForEach(recentRoots.prefix(4), id: \.self) { root in
+                        RecentRootRow(root: root, isSelected: root == directory) {
+                            selectRoot(root)
+                        }
+                    }
+                }
+            }
 
             if isScanning {
                 VStack(alignment: .leading, spacing: 8) {
@@ -120,7 +141,11 @@ struct GameScanView: View {
         panel.prompt = "选择"
         panel.message = "选择包含游戏的文件夹"
         guard panel.runModal() == .OK, let url = panel.url else { return }
-        directory = url
+        selectRoot(url)
+    }
+
+    private func selectRoot(_ root: URL) {
+        directory = root
         results = []
         hasScanned = false
         progress = 0
@@ -148,6 +173,9 @@ struct GameScanView: View {
 
     private func addResults() {
         guard !results.isEmpty else { return }
+        if let directory {
+            ScanRootStore.add(directory)
+        }
         library.add(results)
         dismiss()
     }
@@ -181,5 +209,43 @@ private struct ScanResultRow: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
+    }
+}
+
+private struct RecentRootRow: View {
+    let root: URL
+    let isSelected: Bool
+    let action: () -> Void
+
+    @State private var isHovering = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: 11))
+                    .frame(width: 14)
+                Text(root.path)
+                    .font(.system(size: 12))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Spacer(minLength: 8)
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(Theme.accent)
+                }
+            }
+            .foregroundStyle(Theme.textSecondary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                isHovering ? Theme.hover : Color.clear,
+                in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovering = $0 }
     }
 }

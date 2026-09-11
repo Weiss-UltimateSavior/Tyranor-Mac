@@ -42,6 +42,10 @@ final class EmulatorSettings: ObservableObject {
         didSet { defaults.set(krkrsdl3Path, forKey: Keys.krkrsdl3Path) }
     }
 
+    @Published var onsyuriPath: String = "" {
+        didSet { defaults.set(onsyuriPath, forKey: Keys.onsyuriPath) }
+    }
+
     private let defaults = UserDefaults.standard
 
     init() {
@@ -53,6 +57,7 @@ final class EmulatorSettings: ObservableObject {
         vsyncEnabled = defaults.object(forKey: Keys.vsync) as? Bool ?? true
         showPerformanceOverlay = defaults.object(forKey: Keys.performanceOverlay) as? Bool ?? false
         krkrsdl3Path = defaults.string(forKey: Keys.krkrsdl3Path) ?? ""
+        onsyuriPath = defaults.string(forKey: Keys.onsyuriPath) ?? ""
     }
 
     private enum Keys {
@@ -64,5 +69,6 @@ final class EmulatorSettings: ObservableObject {
         static let vsync = "video.vsync"
         static let performanceOverlay = "debug.performanceOverlay"
         static let krkrsdl3Path = "core.krkrsdl3.path"
+        static let onsyuriPath = "core.onsyuri.path"
     }
 }

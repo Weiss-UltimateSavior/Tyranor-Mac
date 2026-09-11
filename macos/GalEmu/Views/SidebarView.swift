@@ -4,6 +4,7 @@ struct SidebarView: View {
     @EnvironmentObject private var library: GameLibraryController
     @State private var showSortOptions = false
     @State private var showGameScan = false
+    @State private var showCoverSettings = false
     @State private var showAppearance = false
 
     var body: some View {
@@ -24,6 +25,9 @@ struct SidebarView: View {
         .sheet(isPresented: $showGameScan) {
             GameScanView()
         }
+        .sheet(isPresented: $showCoverSettings) {
+            CoverSettingsView()
+        }
         .sheet(isPresented: $showAppearance) {
             AppearanceSettingsView()
         }
@@ -32,23 +36,17 @@ struct SidebarView: View {
     private var librarySection: some View {
         VStack(alignment: .leading, spacing: 2) {
             sectionTitle("游戏库")
-            SidebarRow(icon: "square.grid.2x2", title: "全部游戏", count: library.count(for: .all), isSelected: library.filter == .all) {
-                library.filter = .all
+            SidebarRow(icon: "house", title: "首页", isSelected: library.selection == .home) {
+                library.selection = .home
             }
-            SidebarRow(icon: "star", title: "收藏", count: library.count(for: .favorites), isSelected: library.filter == .favorites) {
-                library.filter = .favorites
+            SidebarRow(icon: "square.grid.2x2", title: "全部游戏", count: library.count(for: .all), isSelected: library.selection == .library(.all)) {
+                library.selection = .library(.all)
             }
-            SidebarRow(icon: "clock", title: "最近游玩", count: library.count(for: .recent), isSelected: library.filter == .recent) {
-                library.filter = .recent
+            SidebarRow(icon: "star", title: "收藏", count: library.count(for: .favorites), isSelected: library.selection == .library(.favorites)) {
+                library.selection = .library(.favorites)
             }
-            SidebarRow(icon: "play.circle", title: "游玩中", count: library.count(for: .status(.playing)), isSelected: library.filter == .status(.playing)) {
-                library.filter = .status(.playing)
-            }
-            SidebarRow(icon: "checkmark.circle", title: "已完成", count: library.count(for: .status(.completed)), isSelected: library.filter == .status(.completed)) {
-                library.filter = .status(.completed)
-            }
-            SidebarRow(icon: "circle", title: "未游玩", count: library.count(for: .status(.notStarted)), isSelected: library.filter == .status(.notStarted)) {
-                library.filter = .status(.notStarted)
+            SidebarRow(icon: "clock", title: "最近游玩", count: library.count(for: .recent), isSelected: library.selection == .library(.recent)) {
+                library.selection = .library(.recent)
             }
         }
     }
@@ -60,10 +58,9 @@ struct SidebarView: View {
                 SidebarRow(
                     icon: "gearshape",
                     title: engine.rawValue,
-                    count: library.count(for: .engine(engine)),
-                    isSelected: library.filter == .engine(engine)
+                    isSelected: library.selection == .engine(engine)
                 ) {
-                    library.filter = .engine(engine)
+                    library.selection = .engine(engine)
                 }
             }
         }
@@ -74,6 +71,9 @@ struct SidebarView: View {
             sectionTitle("应用设置")
             SidebarRow(icon: "magnifyingglass", title: "游戏扫描", isSelected: false) {
                 showGameScan = true
+            }
+            SidebarRow(icon: "photo.on.rectangle", title: "封面获取", isSelected: false) {
+                showCoverSettings = true
             }
             SidebarRow(icon: "paintpalette", title: "外观设置", isSelected: false) {
                 showAppearance = true

@@ -1,6 +1,6 @@
 import Foundation
 
-struct GameMetadata: Hashable {
+struct GameMetadata: Hashable, Codable {
     var developer: String
     var releaseYear: Int
     var summary: String

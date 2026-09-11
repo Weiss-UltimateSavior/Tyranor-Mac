@@ -8,18 +8,9 @@ enum EngineKind: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
 }
 
-enum PlayStatus: String, CaseIterable, Identifiable, Codable {
-    case notStarted = "未游玩"
-    case playing = "游玩中"
-    case completed = "已完成"
-
-    var id: String { rawValue }
-}
-
 enum LibrarySort: String, CaseIterable, Identifiable {
     case recentlyPlayed = "最近游玩"
     case title = "名称"
-    case playtime = "游玩时长"
 
     var id: String { rawValue }
 }
@@ -28,21 +19,49 @@ enum LibraryFilter: Hashable {
     case all
     case favorites
     case recent
-    case status(PlayStatus)
     case engine(EngineKind)
     case developer(String)
 }
 
-struct Game: Identifiable, Hashable {
+enum SidebarSelection: Hashable {
+    case home
+    case library(LibraryFilter)
+    case engine(EngineKind)
+}
+
+enum CoverSource: String, Codable, CaseIterable, Identifiable {
+    case local
+    case vndb
+    case bangumi
+    case steam
+    case custom
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .local:
+            return "本地"
+        case .vndb:
+            return "VNDB"
+        case .bangumi:
+            return "Bangumi"
+        case .steam:
+            return "Steam"
+        case .custom:
+            return "自定义"
+        }
+    }
+}
+
+struct Game: Identifiable, Hashable, Codable {
     let id: UUID
     var title: String
     var metadata: GameMetadata
     var engine: EngineKind
-    var status: PlayStatus
+    var coverPath: String?
+    var coverSource: CoverSource?
     var isFavorite: Bool
-    var isLocked: Bool
-    var hasTrailer: Bool
-    var playtimeHours: Double
     var lastPlayed: Date?
 
     init(
@@ -50,22 +69,18 @@ struct Game: Identifiable, Hashable {
         title: String,
         metadata: GameMetadata,
         engine: EngineKind,
-        status: PlayStatus,
+        coverPath: String? = nil,
+        coverSource: CoverSource? = nil,
         isFavorite: Bool = false,
-        isLocked: Bool = false,
-        hasTrailer: Bool = false,
-        playtimeHours: Double = 0,
         lastPlayed: Date? = nil
     ) {
         self.id = id
         self.title = title
         self.metadata = metadata
         self.engine = engine
-        self.status = status
+        self.coverPath = coverPath
+        self.coverSource = coverSource
         self.isFavorite = isFavorite
-        self.isLocked = isLocked
-        self.hasTrailer = hasTrailer
-        self.playtimeHours = playtimeHours
         self.lastPlayed = lastPlayed
     }
 }
