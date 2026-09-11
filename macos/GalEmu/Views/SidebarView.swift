@@ -17,14 +17,13 @@ struct SidebarView: View {
                     librarySection
                     engineSettingsSection
                     appSettingsSection
-                    sortSection
                 }
                 .padding(.horizontal, isCollapsed ? 6 : 12)
                 .padding(.bottom, 16)
                 .frame(maxWidth: .infinity, alignment: isCollapsed ? .center : .leading)
             }
         }
-        .frame(width: isCollapsed ? 80 : 236)
+        .frame(width: isCollapsed ? 80 : 189)
         .background(Theme.sidebar)
         .sheet(isPresented: $showGameScan) {
             GameScanView()
@@ -108,12 +107,6 @@ struct SidebarView: View {
             SidebarRow(icon: "paintpalette", title: "外观设置", isSelected: false, isCompact: isCollapsed) {
                 showAppearance = true
             }
-        }
-    }
-
-    private var sortSection: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            sectionTitle("排列")
             sortRow
         }
     }
@@ -127,7 +120,7 @@ struct SidebarView: View {
                     .font(.system(size: 13))
                     .frame(width: 18)
                 if !isCollapsed {
-                    Text("排序: \(library.sort.rawValue)")
+                    Text("游戏排序")
                         .font(.system(size: 13))
                         .lineLimit(1)
                     Spacer(minLength: 0)
@@ -140,7 +133,7 @@ struct SidebarView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .help("排序：\(library.sort.rawValue)")
+        .help("游戏排序：\(library.sort.rawValue)")
         .popover(isPresented: $showSortOptions, arrowEdge: .trailing) {
             VStack(alignment: .leading, spacing: 2) {
                 ForEach(LibrarySort.allCases) { option in
