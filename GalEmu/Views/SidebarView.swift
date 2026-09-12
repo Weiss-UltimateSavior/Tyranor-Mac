@@ -79,7 +79,13 @@ struct SidebarView: View {
     }
 
     private var collapseHeader: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 8) {
+            if !isCollapsed {
+                Text("Tyranor Next")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Theme.textPrimary)
+                    .lineLimit(1)
+            }
             Spacer(minLength: 0)
             Button {
                 withAnimation(.easeInOut(duration: 0.15)) {
