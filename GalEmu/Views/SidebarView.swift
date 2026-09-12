@@ -3,6 +3,7 @@ import SwiftUI
 struct SidebarView: View {
     @EnvironmentObject private var library: GameLibraryController
     @EnvironmentObject private var updateChecker: UpdateChecker
+    @EnvironmentObject private var appearance: AppearanceSettings
     @AppStorage("sidebar.collapsed") private var isCollapsed = false
     @State private var showSortOptions = false
     @State private var showGameScan = false
@@ -83,7 +84,7 @@ struct SidebarView: View {
             if !isCollapsed {
                 Text("Tyranor Next")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Theme.textPrimary)
+                    .foregroundStyle(appearance.accent.color)
                     .lineLimit(1)
             }
             Spacer(minLength: 0)
