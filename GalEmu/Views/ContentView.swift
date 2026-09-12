@@ -4,6 +4,7 @@ struct ContentView: View {
     @StateObject private var emulator = EmulatorController()
     @EnvironmentObject private var library: GameLibraryController
     @EnvironmentObject private var appearance: AppearanceSettings
+    @EnvironmentObject private var updateChecker: UpdateChecker
 
     var body: some View {
         ZStack {
@@ -36,5 +37,8 @@ struct ContentView: View {
         .environmentObject(emulator)
         .frame(minWidth: 1100, minHeight: 700)
         .preferredColorScheme(appearance.themeMode.colorScheme)
+        .task {
+            await updateChecker.check(manual: false)
+        }
     }
 }

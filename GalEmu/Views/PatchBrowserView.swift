@@ -95,8 +95,12 @@ struct PatchBrowserView: View {
             VStack(spacing: 10) {
                 Image(systemName: "tray")
                     .font(.system(size: 26))
-                Text(entries.isEmpty ? "没有可用的补丁数据" : "没有匹配的补丁")
+                Text(entries.isEmpty ? "没有可用的补丁数据" : "没有匹配「\(searchText)」的补丁")
                     .font(.system(size: 13))
+                if !entries.isEmpty {
+                    Text("可修改关键词后重新筛选")
+                        .font(.system(size: 12))
+                }
             }
             .foregroundStyle(Theme.textTertiary)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -144,10 +148,27 @@ struct PatchBrowserView: View {
         isLoading = true
         do {
             entries = try await KrkrPatchService.fetchIndex()
+            applyInitialFilter()
         } catch {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+
+    private func applyInitialFilter() {
+        var keywords: [String] = []
+        if let originalTitle = game.metadata.originalTitle, !originalTitle.isEmpty {
+            keywords.append(originalTitle)
+        }
+        let cleaned = CoverSupport.cleanTitle(game.title)
+        if !cleaned.isEmpty, !keywords.contains(cleaned) {
+            keywords.append(cleaned)
+        }
+        for keyword in keywords {
+            searchText = keyword
+            if !filtered.isEmpty { return }
+        }
+        searchText = keywords.first ?? ""
     }
 
     private func install(_ entry: KirikiroidPatchEntry) {

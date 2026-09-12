@@ -2,11 +2,14 @@ import SwiftUI
 
 struct SidebarView: View {
     @EnvironmentObject private var library: GameLibraryController
+    @EnvironmentObject private var updateChecker: UpdateChecker
     @AppStorage("sidebar.collapsed") private var isCollapsed = false
     @State private var showSortOptions = false
     @State private var showGameScan = false
     @State private var showCoverSettings = false
     @State private var showAppearance = false
+    @State private var showUpdateSheet = false
+    @State private var updateAlertMessage: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -34,6 +37,45 @@ struct SidebarView: View {
         .sheet(isPresented: $showAppearance) {
             AppearanceSettingsView()
         }
+        .sheet(isPresented: $showUpdateSheet) {
+            if case let .available(release) = updateChecker.state {
+                UpdateAvailableView(
+                    release: release,
+                    currentVersion: updateChecker.currentVersion,
+                    onSkip: { updateChecker.skip(release) }
+                )
+            }
+        }
+        .onChange(of: updateChecker.state) { state in
+            switch state {
+            case .available:
+                showUpdateSheet = true
+            case .upToDate:
+                if updateChecker.isManualCheck {
+                    updateAlertMessage = "当前已是最新版本（\(updateChecker.currentVersion)）"
+                }
+                updateChecker.reset()
+            case let .failed(message):
+                if updateChecker.isManualCheck {
+                    updateAlertMessage = message
+                }
+                updateChecker.reset()
+            default:
+                break
+            }
+        }
+        .alert("检查更新", isPresented: updateAlertBinding) {
+            Button("好", role: .cancel) {}
+        } message: {
+            Text(updateAlertMessage ?? "")
+        }
+    }
+
+    private var updateAlertBinding: Binding<Bool> {
+        Binding(
+            get: { updateAlertMessage != nil },
+            set: { if !$0 { updateAlertMessage = nil } }
+        )
     }
 
     private var collapseHeader: some View {
@@ -106,6 +148,9 @@ struct SidebarView: View {
             }
             SidebarRow(icon: "paintpalette", title: "外观设置", isSelected: false, isCompact: isCollapsed) {
                 showAppearance = true
+            }
+            SidebarRow(icon: "arrow.triangle.2.circlepath", title: "检查更新", isSelected: false, isCompact: isCollapsed) {
+                Task { await updateChecker.check(manual: true) }
             }
             sortRow
         }

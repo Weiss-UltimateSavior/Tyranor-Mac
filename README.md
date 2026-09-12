@@ -28,9 +28,10 @@
 
 - macOS 13+
 - Xcode 15+ / Swift 5.9+
-- 模拟器内核（可选，自行编译后在 设置 → 内核 中配置路径）：
-  - krkrsdl3 构建产物：`krkrsdl3`
-  - OnscripterYuri 构建产物：`onsyuri`
+- 模拟器内核已内置于 `engine/`，开箱即用：
+  - `engine/kr/krkrsdl3`（KIRIKIRI，含 `Res/`）
+  - `engine/ons/onsyuri`（ONS，依赖库在 `engine/ons/libs/`，已自带）
+- 如需使用其他版本的内核，可在 设置 → 内核 中覆盖路径
 
 ## 构建与运行
 
@@ -52,6 +53,9 @@ swift run TyranorMac
 │   ├── Controllers/     # 游戏库、引擎接入、扫描、封面、存档等
 │   ├── Views/           # SwiftUI 界面
 │   └── Resources/       # 图标等资源
+├── engine/              # 内置模拟器内核
+│   ├── kr/              # krkrsdl3
+│   └── ons/             # OnscripterYuri（含 libs 依赖）
 └── docs/                # 文档
 ```
 

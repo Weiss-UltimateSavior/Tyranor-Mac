@@ -11,6 +11,7 @@ struct TyranorMacApp: App {
     @StateObject private var coverSettings = CoverSettings()
     @StateObject private var coverScraper = CoverScraper()
     @StateObject private var scanSettings = ScanSettings()
+    @StateObject private var updateChecker = UpdateChecker()
 
     var body: some Scene {
         WindowGroup {
@@ -23,6 +24,7 @@ struct TyranorMacApp: App {
                 .environmentObject(coverSettings)
                 .environmentObject(coverScraper)
                 .environmentObject(scanSettings)
+                .environmentObject(updateChecker)
         }
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1360, height: 860)
