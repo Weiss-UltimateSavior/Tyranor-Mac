@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Environment
+        run: |
+          uname -m
+          swift --version
+
+      - name: Version
+        id: version
+        run: echo "version=0.1.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Package app
+        run: |
+          chmod +x scripts/package_app.sh
+          VERSION=${{ steps.version.outputs.version }} ./scripts/package_app.sh
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Tyranor Mac v${{ steps.version.outputs.version }}
+          files: dist/*.zip
+          generate_release_notes: true

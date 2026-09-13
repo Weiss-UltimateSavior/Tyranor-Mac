@@ -8,7 +8,11 @@ enum CoreLocator {
     static func krkrsdl3Executable() -> URL? {
         executable(
             configuredKey: "core.krkrsdl3.path",
-            candidates: [projectPath("engine/kr/krkrsdl3"), defaultKrkrsdl3Path],
+            candidates: [
+                projectPath("engine/kr/krkrsdl3"),
+                bundlePath("engine/kr/krkrsdl3"),
+                defaultKrkrsdl3Path,
+            ],
             named: "krkrsdl3"
         )
     }
@@ -16,7 +20,11 @@ enum CoreLocator {
     static func onsyuriExecutable() -> URL? {
         executable(
             configuredKey: "core.onsyuri.path",
-            candidates: [projectPath("engine/ons/onsyuri"), defaultOnsyuriPath],
+            candidates: [
+                projectPath("engine/ons/onsyuri"),
+                bundlePath("engine/ons/onsyuri"),
+                defaultOnsyuriPath,
+            ],
             named: "onsyuri"
         )
     }
@@ -24,18 +32,22 @@ enum CoreLocator {
     static func artemisExecutable() -> URL? {
         executable(
             configuredKey: "core.artemis.path",
-            candidates: [projectPath("engine/ar/artemis-mac"), defaultArtemisPath],
+            candidates: [
+                projectPath("engine/ar/artemis-mac"),
+                bundlePath("engine/ar/artemis-mac"),
+                defaultArtemisPath,
+            ],
             named: "artemis-mac"
         )
     }
 
     private static func executable(
         configuredKey: String,
-        candidates: [String],
+        candidates: [String?],
         named name: String
     ) -> URL? {
         let configured = UserDefaults.standard.string(forKey: configuredKey) ?? ""
-        let paths = ([configured] + candidates).filter { !$0.isEmpty }
+        let paths = ([configured] + candidates.compactMap { $0 }).filter { !$0.isEmpty }
         if let path = paths.first(where: { FileManager.default.isExecutableFile(atPath: $0) }) {
             return URL(fileURLWithPath: path)
         }
@@ -44,6 +56,10 @@ enum CoreLocator {
 
     private static func projectPath(_ relativePath: String) -> String {
         projectRoot.appendingPathComponent(relativePath).path
+    }
+
+    private static func bundlePath(_ relativePath: String) -> String? {
+        Bundle.main.resourceURL?.appendingPathComponent(relativePath).path
     }
 
     private static var projectRoot: URL {

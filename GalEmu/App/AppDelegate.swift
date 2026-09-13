@@ -15,7 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func applyAppIdentity() {
-        if let iconURL = Bundle.module.url(forResource: "AppIcon", withExtension: "png"),
+        if let iconURL = AppIconLocator.iconURL(named: "AppIcon"),
            let icon = NSImage(contentsOf: iconURL) {
             NSApp.applicationIconImage = icon
         }
