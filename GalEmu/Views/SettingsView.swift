@@ -56,6 +56,13 @@ struct SettingsView: View {
                     defaultPath: CoreLocator.defaultOnsyuriPath
                 )
             }
+            Section("ARTEMIS（artemis-compat）") {
+                kernelRow(
+                    title: "内核路径",
+                    text: $settings.artemisPath,
+                    defaultPath: CoreLocator.defaultArtemisPath
+                )
+            }
         }
         .formStyle(.grouped)
     }

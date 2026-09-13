@@ -41,8 +41,12 @@ final class EmulatorController: ObservableObject {
             arguments = ["-r", gameDirectory.path, "--save-dir", saveDirectory.path + "/"]
                 + ONSEngineSettings.persistedLaunchArguments()
         case .artemis:
-            notice = Notice(game: game, message: "暂未接入 \(game.engine.rawValue) 内核，当前支持 KIRIKIRI 与 ONS")
-            return
+            guard let url = CoreLocator.artemisExecutable() else {
+                notice = Notice(game: game, message: "未找到 artemis-mac 内核，请在设置 → 内核中配置路径")
+                return
+            }
+            executable = url
+            arguments = [gameDirectory.path] + ARTEMISEngineSettings.persistedLaunchArguments()
         }
 
         let process = Process()

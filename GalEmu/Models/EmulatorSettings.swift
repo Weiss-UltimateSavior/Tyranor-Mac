@@ -46,6 +46,10 @@ final class EmulatorSettings: ObservableObject {
         didSet { defaults.set(onsyuriPath, forKey: Keys.onsyuriPath) }
     }
 
+    @Published var artemisPath: String = "" {
+        didSet { defaults.set(artemisPath, forKey: Keys.artemisPath) }
+    }
+
     private let defaults = UserDefaults.standard
 
     init() {
@@ -59,6 +63,7 @@ final class EmulatorSettings: ObservableObject {
         showPerformanceOverlay = defaults.object(forKey: Keys.performanceOverlay) as? Bool ?? false
         krkrsdl3Path = defaults.string(forKey: Keys.krkrsdl3Path) ?? ""
         onsyuriPath = defaults.string(forKey: Keys.onsyuriPath) ?? ""
+        artemisPath = defaults.string(forKey: Keys.artemisPath) ?? ""
     }
 
     private enum Keys {
@@ -71,5 +76,6 @@ final class EmulatorSettings: ObservableObject {
         static let performanceOverlay = "debug.performanceOverlay"
         static let krkrsdl3Path = "core.krkrsdl3.path"
         static let onsyuriPath = "core.onsyuri.path"
+        static let artemisPath = "core.artemis.path"
     }
 }

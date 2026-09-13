@@ -3,6 +3,7 @@ import Foundation
 enum CoreLocator {
     static let defaultKrkrsdl3Path = "/Users/weiss/opencode/krkrsdl3_build/out/macos/Release/krkrsdl3"
     static let defaultOnsyuriPath = "/Users/weiss/github- engine/OnscripterYuri/build_darwin/onsyuri"
+    static let defaultArtemisPath = "/Users/weiss/opencode/artemis-compat/build-mac/artemis-mac"
 
     static func krkrsdl3Executable() -> URL? {
         executable(
@@ -17,6 +18,14 @@ enum CoreLocator {
             configuredKey: "core.onsyuri.path",
             candidates: [projectPath("engine/ons/onsyuri"), defaultOnsyuriPath],
             named: "onsyuri"
+        )
+    }
+
+    static func artemisExecutable() -> URL? {
+        executable(
+            configuredKey: "core.artemis.path",
+            candidates: [projectPath("engine/ar/artemis-mac"), defaultArtemisPath],
+            named: "artemis-mac"
         )
     }
 

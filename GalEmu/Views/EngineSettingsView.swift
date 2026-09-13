@@ -6,6 +6,7 @@ struct EngineSettingsView: View {
     @EnvironmentObject private var settings: EmulatorSettings
     @EnvironmentObject private var krSettings: KREngineSettings
     @EnvironmentObject private var onsSettings: ONSEngineSettings
+    @EnvironmentObject private var arSettings: ARTEMISEngineSettings
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -15,8 +16,8 @@ struct EngineSettingsView: View {
                 kirikiriSettings
             } else if engine == .ons {
                 onsSettingsForm
-            } else {
-                emptyPlaceholder
+            } else if engine == .artemis {
+                artemisSettingsForm
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -42,7 +43,7 @@ struct EngineSettingsView: View {
         case .kirikiri:
             return "krkrsdl3 内核参数，修改后下次启动游戏生效"
         case .artemis:
-            return "ARTEMIS 内核尚未接入"
+            return "artemis-compat 内核参数，修改后下次启动游戏生效"
         case .ons:
             return "OnscripterYuri 内核参数，修改后下次启动游戏生效"
         }
@@ -101,14 +102,18 @@ struct EngineSettingsView: View {
         .padding(.horizontal, 16)
     }
 
-    private var emptyPlaceholder: some View {
-        VStack(spacing: 10) {
-            Image(systemName: "slider.horizontal.3")
-                .font(.system(size: 30))
-            Text("暂无可配置的引擎参数")
-                .font(.system(size: 13))
+    private var artemisSettingsForm: some View {
+        Form {
+            Section("兼容") {
+                Picker("平台配置", selection: $arSettings.platform) {
+                    ForEach(ARTEMISPlatform.allCases) { option in
+                        Text(option.rawValue).tag(option)
+                    }
+                }
+            }
         }
-        .foregroundStyle(Theme.textTertiary)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .padding(.horizontal, 16)
     }
 }

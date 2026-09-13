@@ -11,7 +11,7 @@
 | --- | --- | --- |
 | KIRIKIRI | [krkrsdl3](https://github.com/krkrsdl3/krkrsdl3) | 已接入 |
 | ONS | [OnscripterYuri](https://github.com/YuriSizuku/OnscripterYuri) | 已接入 |
-| ARTEMIS | 规划中 |
+| ARTEMIS | artemis-compat | 已接入 |
 
 ## 功能
 
@@ -20,7 +20,7 @@
 - **封面与信息**：自动识别本地封面（cover.jpg / icon.png 等）；VNDB / Bangumi / Steam 在线获取，支持候选选择，并随封面写入开发商、发售日、标签、简介
 - **存档管理**：按引擎定位存档目录（KR: `savedata/`，ONS: `save/`），支持 zip 导入 / 导出 / 删除
 - **在线补丁**：KiriKIRI 补丁索引（[zeas2/Kirikiroid2_patch](https://github.com/zeas2/Kirikiroid2_patch)），搜索并安装到游戏目录
-- **引擎设置**：KIRIKIRI（渲染后端、窗口大小、垂直同步）、ONS（文本编码、窗口、全屏、兼容项）参数
+- **引擎设置**：KIRIKIRI（渲染后端、窗口大小、垂直同步）、ONS（文本编码、窗口、全屏、兼容项）、ARTEMIS（平台配置）参数
 - **外观设置**：深浅色、强调色、封面大小与圆角、首页样式与背景模糊
 - **其他**：游戏重命名、删除（仅应用内数据）、在访达中显示、打开游戏目录
 
@@ -31,6 +31,7 @@
 - 模拟器内核已内置于 `engine/`，开箱即用：
   - `engine/kr/krkrsdl3`（KIRIKIRI，含 `Res/`）
   - `engine/ons/onsyuri`（ONS，依赖库在 `engine/ons/libs/`，已自带）
+  - `engine/ar/artemis-mac`（ARTEMIS，依赖库在 `engine/ar/libs/`，含 FFmpeg）
 - 如需使用其他版本的内核，可在 设置 → 内核 中覆盖路径
 
 ## 构建与运行
@@ -55,7 +56,8 @@ swift run TyranorMac
 │   └── Resources/       # 图标等资源
 ├── engine/              # 内置模拟器内核
 │   ├── kr/              # krkrsdl3
-│   └── ons/             # OnscripterYuri（含 libs 依赖）
+│   ├── ons/             # OnscripterYuri（含 libs 依赖）
+│   └── ar/              # artemis-compat（含 libs 依赖）
 └── docs/                # 文档
 ```
 
