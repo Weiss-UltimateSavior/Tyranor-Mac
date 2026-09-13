@@ -32,6 +32,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v${{ steps.version.outputs.version }}" dist/*.zip \
+          gh release create "v${{ steps.version.outputs.version }}" dist/*.zip dist/*.dmg \
             --title "Tyranor Mac v${{ steps.version.outputs.version }}" \
             --generate-notes

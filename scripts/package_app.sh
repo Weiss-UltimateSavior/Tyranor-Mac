@@ -76,4 +76,16 @@ ZIP="$DIST/TyranorMac-${VERSION}.zip"
 echo "==> Packaging $ZIP"
 ditto -c -k --keepParent "$APP" "$ZIP"
 
-echo "==> Done: $ZIP"
+DMG="$DIST/TyranorMac-${VERSION}.dmg"
+echo "==> Packaging $DMG"
+STAGE="$DIST/dmg-stage"
+rm -rf "$STAGE"
+mkdir -p "$STAGE"
+cp -R "$APP" "$STAGE/"
+ln -s /Applications "$STAGE/Applications"
+hdiutil create -volname "Tyranor Mac" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
+rm -rf "$STAGE"
+
+echo "==> Done:"
+echo "    $ZIP"
+echo "    $DMG"
